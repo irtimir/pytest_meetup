@@ -1,0 +1,6 @@
+django==3.2
+redis==4.6.0
+pytest==7.4.0
+pytest-django==4.5.2
+testcontainers==3.7.1
+factory_boy==3.2.1
