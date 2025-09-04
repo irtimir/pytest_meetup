@@ -4,84 +4,50 @@ import string
 
 import pytest
 
-
-def test_bad():
-    rnd_string = ''.join(random.choices(string.ascii_lowercase, k=100))
-    c_string = rnd_string.capitalize()
-    assert isinstance(c_string, str)
-    assert len(c_string) == 100
-    assert c_string[0].isupper()
+from core.shop.cart import Cart
 
 
-@pytest.fixture
-def some_string():
-    return 'value'
+def test_add_one_item():
+    cart = Cart()
+    cart.add("apple")
+    assert cart.total() == 1
 
-
-def test_string(some_string):
-    assert some_string == 'value'
+def test_add_two_items():
+    cart = Cart()
+    cart.add("apple")
+    cart.add("banana")
+    assert cart.total() == 2
 
 
 @pytest.fixture
-def rnd_string():
-    return ''.join(random.choices(string.ascii_lowercase, k=100))
+def empty_cart():
+    return Cart()
 
+def test_add_one_item_fixture(empty_cart):
+    empty_cart.add("apple")
+    assert empty_cart.total() == 1
 
-def test_rnd_string(rnd_string):
-    c_string = rnd_string.capitalize()
-    assert isinstance(c_string, str)
-    assert len(c_string) == 100
-    assert c_string[0].isupper()
-
-
-@pytest.fixture
-def ascii_and_digits():
-    return string.ascii_letters + string.digits
+def test_add_two_items_fixture(empty_cart):
+    empty_cart.add("apple")
+    empty_cart.add("banana")
+    assert empty_cart.total() == 2
 
 
 @pytest.fixture
-def rnd_string_1(ascii_and_digits):
-    return ''.join(random.choices(ascii_and_digits, k=100))
+def cart_factory():
+    def _create_cart_with_items(num_items = 0):
+        cart = Cart()
+        for _ in range(num_items):
+            item = ''.join(random.choices(string.ascii_lowercase, k=5))
+            cart.add(item)
+        return cart
+    return _create_cart_with_items
 
 
-@pytest.fixture
-def rnd_string_factory():
-    def factory(symbols, n=100):
-        return ''.join(random.choices(symbols, k=n))
+def test_empty_cart(cart_factory):
+    cart = cart_factory()
+    assert cart.total() == 0
 
-    return factory
-
-
-def test_rnd_string_factory(rnd_string_factory):
-    value = rnd_string_factory(symbols='qwerty1234', n=10)
-    assert len(value) == 10
-
-
-@pytest.fixture
-def temp_file():
-    file_path = '/tmp/pytest_temp_file'
-    f = open(file_path, 'w')
-    yield f
-    f.close()
-    os.remove(file_path)
-
-
-@pytest.fixture
-def temp_file_factory():
-    f, f_path = None, None
-
-    def factory(file_path):
-        nonlocal f, f_path
-        f, f_path = open(file_path, 'w'), file_path
-        return f
-
-    yield factory
-
-    if f_path is not None and f is not None:
-        f.close()
-        os.remove(f_path)
-
-
-def test_temp_file_factory(temp_file_factory):
-    f = temp_file_factory('temp_file_name')
-    f.write('some text')
+def test_cart_with_items(cart_factory):
+    user = cart_factory(num_items=5)
+    assert user.total() == 5
