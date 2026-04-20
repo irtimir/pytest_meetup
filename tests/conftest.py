@@ -2,15 +2,15 @@ import sys
 
 import pytest
 
+# collect_ignore — список файлов, которые pytest пропустит при сборе тестов.
+# test_py2.py содержит синтаксис Python 2 (print 1) — без этого pytest упадёт
+# с SyntaxError ещё до запуска тестов.
 if sys.version_info[0] > 2:
     collect_ignore = ['test_py2.py']
 
+# Загрузка локального плагина redis_fixtures.py
 pytest_plugins = ['redis_fixtures']
 
-
-@pytest.fixture
-def shared_fixture():
-    return 'value'
 
 
 def pytest_addoption(parser):

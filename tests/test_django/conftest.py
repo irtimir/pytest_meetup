@@ -1,3 +1,8 @@
+# conftest.py для Django-тестов.
+#
+# Поднимает PostgreSQL в Docker через testcontainers
+# и настраивает Django на использование этой БД.
+
 import pytest
 from django.conf import settings
 from django.db.utils import ConnectionHandler
@@ -9,6 +14,8 @@ from testcontainers.postgres import PostgresContainer
 from tests.test_django.factories import UserFactory
 
 
+# Кастомный контейнер: расширяет PostgresContainer
+# чтобы корректно работать с django_db_blocker
 class PostgresContainerDjango(PostgresContainer):
     def __init__(self, db_blocker, *args, **kwargs):
         self.db_blocker = db_blocker
@@ -29,14 +36,15 @@ class PostgresContainerDjango(PostgresContainer):
             }).create_connection('default').connect()
 
 
+# Session-scoped фикстура: один контейнер PostgreSQL на всю сессию.
+# autouse=True — применяется ко всем тестам в этой директории.
 @pytest.fixture(scope='session', autouse=True)
 def postgres_container(django_db_blocker):
     skip_if_no_django()
     db = PostgresContainerDjango(django_db_blocker)
     db.start()
 
-    # we could use `django_db_modify_db_settings` fixture, but that doesn't work right now
-    # https://github.com/pytest-dev/pytest-django/issues/643
+    # Настраиваем Django на использование контейнерной БД
     settings.DATABASES['default']['NAME'] = db.POSTGRES_DB
     settings.DATABASES['default']['USER'] = db.POSTGRES_USER
     settings.DATABASES['default']['PASSWORD'] = db.POSTGRES_PASSWORD
@@ -47,6 +55,7 @@ def postgres_container(django_db_blocker):
     db.stop()
 
 
+# Кастомные фикстуры для удобства — используют UserFactory
 @pytest.fixture
 def user():
     return UserFactory()

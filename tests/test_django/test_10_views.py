@@ -1,3 +1,8 @@
+# Тесты Django-вьюх с встроенной фикстурой client.
+#
+# client — встроенная фикстура pytest-django,
+# аналог django.test.Client.
+
 import pytest
 
 
